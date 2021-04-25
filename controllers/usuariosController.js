@@ -1,32 +1,64 @@
 const { response } = require("express");
+const bcrypt = require('bcryptjs');
+const Usuario = require('../models/Usuario');
 
-const usuariosGet = (req, res = response) => {
+const usuariosGet = async (req, res = response) => {
 
-    const { q, name = 'No name'} = req.query
+    const { limite = 5, desde = 0 } = req.query
+    const query = { estado: true }
 
+    const [total, usuarios] = await Promise.all([
+        Usuario.countDocuments(query),
+        Usuario.find(query)
+            .skip(Number(desde))
+            .limit(Number(limite))
+    ])
     res.json({
-        msg : "get API - controlador",
-        q,
-        name
+        ok: true,
+        total,
+        usuarios
     });
 }
-const usuariosPut = (req, res = response) => {
+const usuariosPut = async (req, res = response) => {
 
     const { id } = req.params;
+    const { password, google, email, ...resto } = req.body
 
+    if (password) {
+        const salt = bcrypt.genSaltSync();
+        resto.password = bcrypt.hashSync(password, salt)
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(id, resto)
     res.json({
-        msg : "put API - controlador",
+        msg: "put API - controlador",
         id
     });
 }
-const usuariosPost = (req, res = response) => {
+const usuariosPost = async (req, res = response) => {
+    const { nombre, email, password, rol } = req.body;
+
+    const usuario = new Usuario({ nombre, email, password, rol })
+
+    const salt = bcrypt.genSaltSync();
+    usuario.password = bcrypt.hashSync(usuario.password, salt)
+
+    await usuario.save()
     res.json({
-        msg : "post API - controlador"
+        ok: true,
+        msg: "Usuario creado correctamente",
+        usuario
     });
 }
-const usuariosDelete = (req, res = response) => {
+const usuariosDelete = async(req, res = response) => {
+
+    const { id } = req.params
+
+    const usuario = await Usuario.findByIdAndUpdate( id, {estado : false} )
+
     res.json({
-        msg : "delete API - controlador"
+        ok : true,
+        msg: `Usuario con id ${id} eliminado correctamente`
     });
 }
 
