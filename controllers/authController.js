@@ -2,6 +2,7 @@ const { response } = require("express");
 const Usuario =  require('../models/usuario')
 const bcrypt = require('bcryptjs');
 const { generarJWT } = require("../helpers/generar-jwt");
+const { googleVerify } = require('../helpers/verificar-google')
 
 const login = async( req, res = response) => {
 
@@ -41,6 +42,45 @@ const login = async( req, res = response) => {
     })
 }
 
+const googleSignIn = async(req, res = response ) =>{
+    const { id_token } = req.body
+
+    const { email, nombre, img} = await googleVerify( id_token )
+
+    let usuario = await Usuario.findOne({ email });
+
+    console.log(usuario);
+
+    if(!usuario){
+        // crear usuario
+        const data = { 
+            nombre,
+            email,
+            password : 'xd',
+            img,
+            google : true,
+            rol : 'USER_ROL'
+        }
+
+        usuario = new Usuario( data )
+        await usuario.save();
+    }
+
+    if( !usuario.estado ){
+        return res.status(401).json({
+            ok : false,
+            msg : "Acceso denegado, usuario bloqueado"
+        })
+    }
+
+    
+    return res.json({
+        msg : "login with google ok!",
+        usuario
+    })
+}
+
 module.exports = {
-    login
+    login,
+    googleSignIn
 }
