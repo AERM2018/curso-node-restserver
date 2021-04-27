@@ -3,6 +3,9 @@ const cors = require('cors');
 const usuariosRouter = require('../routes/usuarios');
 const { dbConnection } = require('../db/config');
 const authRouter = require('../routes/auth');
+const categoriasRouter = require('../routes/categorias');
+const productosRouter = require('../routes/productos');
+const buscarRouter = require('../routes/buscar');
 
 
 class Server {
@@ -12,6 +15,9 @@ class Server {
     this.paths = {
       authPath : '/api/auth',
       usuariosPath : '/api/usuarios',
+      categoriasPath : '/api/categorias',
+      productosPath : '/api/productos',
+      buscarPath : '/api/buscar',
     };
 
     // Conectar base de datos
@@ -44,6 +50,9 @@ class Server {
 
     this.app.use( this.paths.usuariosPath, usuariosRouter )
     this.app.use( this.paths.authPath, authRouter )
+    this.app.use( this.paths.categoriasPath, categoriasRouter )
+    this.app.use( this.paths.productosPath, productosRouter )
+    this.app.use( this.paths.buscarPath, buscarRouter )
 
   }
 
